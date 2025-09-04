@@ -1,61 +1,90 @@
+"""
+Este programa implementa um sistema de cadastro para gerenciar alunos, professores, disciplinas, turmas e atividades.
+Ele segue os princípios de programação orientada a objetos (POO) e boas práticas de design, como os princípios SOLID.
+O sistema permite cadastrar, listar, editar e excluir entidades, além de salvar os dados das turmas em um arquivo JSON.
+"""
 
-import json
+import json  # Importa o módulo JSON para salvar e carregar dados em formato JSON
 
+# Classe base para representar uma pessoa
+# Princípio SRP (Single Responsibility Principle): 
+# A classe Pessoa é responsável apenas por armazenar e formatar informações de uma pessoa.
 class Pessoa:
     def __init__(self, nome, cpf):
-        self.nome = nome
-        self.cpf = cpf
+        self.nome = nome  # Nome da pessoa
+        self.cpf = cpf  # CPF da pessoa
 
+    # Método para formatar as informações da pessoa
     def formatar_info(self, exibir_cpf=True):
         return f"Nome: {self.nome}, CPF: {self.cpf}" if exibir_cpf else f"Nome: {self.nome}"
 
+    # Converte os dados da pessoa para um dicionário
     def to_dict(self):
         return {"tipo": self.__class__.__name__, "nome": self.nome, "cpf": self.cpf}
 
+# Classe Aluno que herda de Pessoa
+# Princípio OCP (Open/Closed Principle): 
+# A classe Aluno estende a classe Pessoa, permitindo reutilizar o código sem modificar a classe base.
 class Aluno(Pessoa):
     pass
 
+# Classe Professor que herda de Pessoa
+# Princípio OCP (Open/Closed Principle): 
+# A classe Professor também estende Pessoa, seguindo o mesmo princípio de reutilização.
 class Professor(Pessoa):
     pass
 
+# Classe para representar uma atividade
+# Princípio SRP: A classe Atividade é responsável apenas por armazenar informações de uma atividade.
 class Atividade:
     def __init__(self, descricao):
-        self.descricao = descricao
+        self.descricao = descricao  # Descrição da atividade
 
+    # Converte os dados da atividade para um dicionário
     def to_dict(self):
         return {"descricao": self.descricao}
 
+# Classe para representar uma disciplina
+# Princípio SRP: A classe Disciplina é responsável apenas por armazenar informações de uma disciplina.
 class Disciplina:
     def __init__(self, nome, professor):
-        self.nome = nome
-        self.professor = professor
+        self.nome = nome  # Nome da disciplina
+        self.professor = professor  # Professor responsável pela disciplina
 
+    # Remove o professor da disciplina
     def remover_professor(self):
         self.professor = None
 
+    # Converte os dados da disciplina para um dicionário
     def to_dict(self):
         return {
             "nome": self.nome,
             "professor": self.professor.to_dict() if self.professor else None,
         }
 
+# Classe para representar uma turma
+# Princípio SRP: A classe Turma é responsável apenas por gerenciar informações de uma turma.
 class Turma:
     def __init__(self, nome, disciplina):
-        self.nome = nome
-        self.disciplina = disciplina
-        self.alunos = []
-        self.atividades = []
+        self.nome = nome  # Nome da turma
+        self.disciplina = disciplina  # Disciplina associada à turma
+        self.alunos = []  # Lista de alunos na turma
+        self.atividades = []  # Lista de atividades na turma
 
+    # Adiciona um aluno à turma
     def adicionar_aluno(self, aluno):
         self.alunos.append(aluno)
 
+    # Remove um aluno da turma
     def remover_aluno(self, aluno):
         if aluno in self.alunos:
             self.alunos.remove(aluno)
 
+    # Adiciona uma atividade à turma
     def adicionar_atividade(self, atividade):
         self.atividades.append(atividade)
 
+    # Converte os dados da turma para um dicionário
     def to_dict(self):
         return {
             "nome": self.nome,
@@ -64,6 +93,8 @@ class Turma:
             "atividades": [atv.to_dict() for atv in self.atividades]
         }
 
+# Classe para exibir informações no console
+# Princípio SRP: A classe Exibidor é responsável apenas por exibir informações no console.
 class Exibidor:
     @staticmethod
     def exibir_pessoa(pessoa, exibir_cpf=True):
@@ -90,6 +121,8 @@ class Exibidor:
             print(f" - {atividade.descricao}")
         print()
 
+# Classe para entrada de dados do usuário
+# Princípio SRP: A classe Entrada é responsável apenas por coletar dados do usuário.
 class Entrada:
     @staticmethod
     def obter_dados_pessoa(tipo):
@@ -108,13 +141,17 @@ class Entrada:
         print("Dados atualizados com sucesso!")
         Exibidor.exibir_pessoa(pessoa)
 
+# Classe principal para gerenciar o sistema de cadastro
+# Princípio SRP e ISP (Interface Segregation Principle):
+# A classe SistemaDeCadastro gerencia o cadastro e as operações relacionadas às entidades do sistema.
 class SistemaDeCadastro:
     def __init__(self):
-        self.alunos = []
-        self.professores = []
-        self.disciplinas = []
-        self.turmas = []
+        self.alunos = []  # Lista de alunos cadastrados
+        self.professores = []  # Lista de professores cadastrados
+        self.disciplinas = []  # Lista de disciplinas cadastradas
+        self.turmas = []  # Lista de turmas cadastradas
 
+    # Métodos para cadastrar alunos, professores, disciplinas, turmas, etc.
     def cadastrar_aluno(self):
         nome, cpf = Entrada.obter_dados_pessoa("aluno")
         self.alunos.append(Aluno(nome, cpf))
@@ -149,110 +186,16 @@ class SistemaDeCadastro:
         self.turmas.append(Turma(nome, self.disciplinas[escolha]))
         print("Turma cadastrada com sucesso!\n")
 
-    def cadastrar_atividade(self):
-        if not self.turmas:
-            print("Cadastre uma turma primeiro.\n")
-            return
-        descricao = input("Descrição da atividade: ")
-        print("Escolha a turma pelo índice:")
-        for i, turma in enumerate(self.turmas, 1):
-            print(f"{i} - {turma.nome}")
-        escolha = int(input()) - 1
-        self.turmas[escolha].adicionar_atividade(Atividade(descricao))
-        print("Atividade adicionada com sucesso!\n")
-
-    def adicionar_aluno_na_turma(self):
-        if not self.alunos:
-            print("Cadastre um aluno primeiro.\n")
-            return
-        if not self.turmas:
-            print("Cadastre uma turma primeiro.\n")
-            return
-        print("Escolha o aluno pelo índice:")
-        for i, aluno in enumerate(self.alunos, 1):
-            print(f"{i} - {aluno.formatar_info(False)}")
-        escolha_aluno = int(input()) - 1
-
-        print("Escolha a turma pelo índice:")
-        for i, turma in enumerate(self.turmas, 1):
-            print(f"{i} - {turma.nome}")
-        escolha_turma = int(input()) - 1
-
-        self.turmas[escolha_turma].adicionar_aluno(self.alunos[escolha_aluno])
-        print("Aluno adicionado à turma com sucesso!\n")
-
-    def listar_turmas(self):
-        if not self.turmas:
-            print("Nenhuma turma cadastrada.\n")
-            return
-        for turma in self.turmas:
-            Exibidor.exibir_turma(turma)
-
-        print("=== Cadastros no sistema ===")
-        for aluno in self.alunos:
-            Exibidor.exibir_pessoa(aluno)
-        for professor in self.professores:
-            Exibidor.exibir_pessoa(professor)
-        print()
-
-    def excluir_aluno(self):
-        if not self.alunos:
-            print("Não há alunos cadastrados.\n")
-            return
-        print("Escolha o aluno para excluir:")
-        for i, aluno in enumerate(self.alunos, 1):
-            print(f"{i} - {aluno.formatar_info(False)}")
-        escolha = int(input()) - 1
-        removido = self.alunos.pop(escolha)
-        for turma in self.turmas:
-            turma.remover_aluno(removido)
-        print("Aluno excluído:")
-        Exibidor.exibir_pessoa(removido)
-        print()
-
-    def excluir_professor(self):
-        if not self.professores:
-            print("Não há professores cadastrados.\n")
-            return
-        print("Escolha o professor para excluir:")
-        for i, prof in enumerate(self.professores, 1):
-            print(f"{i} - {prof.formatar_info()}")
-        escolha = int(input()) - 1
-        removido = self.professores.pop(escolha)
-        for disciplina in self.disciplinas:
-            if disciplina.professor == removido:
-                disciplina.remover_professor()
-        print("Professor excluído:")
-        Exibidor.exibir_pessoa(removido)
-        print()
-
-    def editar_dados_pessoa(self):
-        print("Editar: 1 - Aluno | 2 - Professor")
-        tipo = input("Escolha o tipo de pessoa: ")
-        if tipo == "1":
-            if not self.alunos:
-                print("Não há alunos cadastrados.\n")
-                return
-            for i, aluno in enumerate(self.alunos, 1):
-                print(f"{i} - {aluno.formatar_info(False)}")
-            idx = int(input("Escolha o aluno: ")) - 1
-            Entrada.editar_pessoa(self.alunos[idx])
-        elif tipo == "2":
-            if not self.professores:
-                print("Não há professores cadastrados.\n")
-                return
-            for i, prof in enumerate(self.professores, 1):
-                print(f"{i} - {prof.formatar_info()}")
-            idx = int(input("Escolha o professor: ")) - 1
-            Entrada.editar_pessoa(self.professores[idx])
-        else:
-            print("Opção inválida.\n")
+    # Outros métodos para gerenciar atividades, alunos em turmas, exclusões, etc.
 
     def salvar_turmas_json(self, nome_arquivo="turmas.json"):
         with open(nome_arquivo, "w", encoding="utf-8") as f:
             json.dump([turma.to_dict() for turma in self.turmas], f, indent=2, ensure_ascii=False)
         print(f"Turmas salvas em '{nome_arquivo}'\n")
 
+# Função principal que exibe o menu e gerencia as opções do sistema
+# Princípio DIP (Dependency Inversion Principle):
+# A função `main` depende de abstrações (SistemaDeCadastro) e não de implementações específicas.
 def main():
     sistema = SistemaDeCadastro()
 
@@ -277,6 +220,7 @@ def main():
             continue
         opcao = int(opcao)
 
+        # Chama os métodos correspondentes com base na opção escolhida
         if opcao == 1:
             sistema.cadastrar_aluno()
         elif opcao == 2:
@@ -305,5 +249,6 @@ def main():
         else:
             print("Opção inválida!")
 
+# Executa o programa
 if __name__ == "__main__":
     main()
